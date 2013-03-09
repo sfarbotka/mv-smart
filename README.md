@@ -1,8 +1,8 @@
- mv-smart
+mv-smart
+=========
+Smart file renaming
 
-`mv-smart.py` -- smart file renaming
-
-#### SYNOPSIS
+### SYNOPSIS
     mv-smart.py -n pattern [--f] FILE [FILE ...]
     mv-smart.py -b pattern [-e pattern] [--f] FILE [FILE ...]
     mv-smart.py --simple -n pattern [--f] FILE [FILE ...]
@@ -10,7 +10,7 @@
     mv-smart.py --regex-subs -n pattern [--f] FILE [FILE ...]
     mv-smart.py --regex-subs -b pattern [-e pattern] [--f] FILE [FILE ...]
 
-#### DESCRIPTION
+### DESCRIPTION
 
 The `mv-smart.py` utility renames listed files using two kind of patterns.
 
@@ -27,7 +27,7 @@ extension separately.
 
 Files won't be ranamed until '-f' argument is specified.
 
-#### PATTERNS TYPES
+### PATTERNS TYPES
 
 **Simple patterns**
 
@@ -59,7 +59,7 @@ You can use special sequences in __replace__:
     '\n'    - to insert file name with extension
 
 
-#### EXAMPLES
+### EXAMPLES
 
 `$ mv-smart.py -n [n4].~[e] aaa1.txt bbb2.txt`
 
