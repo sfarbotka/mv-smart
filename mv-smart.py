@@ -20,12 +20,12 @@ NAME
     %(prog)s -- smart file renaming
 
 SYNOPSIS
-    %(prog)s -n expr FILE [FILE ...]
-    %(prog)s -b expr [-e expr] FILE [FILE ...]
-    %(prog)s --simple -n expr FILE [FILE ...]
-    %(prog)s --simple -b expr [-e expr] FILE [FILE ...]
-    %(prog)s --regex-subs -n expr FILE [FILE ...]
-    %(prog)s --regex-subs -b expr [-e expr] FILE [FILE ...]
+    %(prog)s -n pattern [-f] FILE [FILE ...]
+    %(prog)s -b pattern [-e pattern] [-f] FILE [FILE ...]
+    %(prog)s --simple -n pattern [-f] FILE [FILE ...]
+    %(prog)s --simple -b pattern [-e pattern] [-f] FILE [FILE ...]
+    %(prog)s --regex-subs -n pattern [-f] FILE [FILE ...]
+    %(prog)s --regex-subs -b pattern [-e pattern] [-f] FILE [FILE ...]
 
 ARGUMENTS
 """ % {'prog': prog}
@@ -36,13 +36,10 @@ DESCRIPTION
     The %(prog)s utility renames listed files using two kind of patterns.
 
     If you specify '-n' argument, 'pattern' presents whole file name (base and extension).
-
     If you specify '-b' argument, 'pattern' presents only file base name (extension
     will not be renamed).
-
     If you specify '-e' argument, 'pattern' presents only file extension (base will not
     be renamed).
-
     If you specify both '-b' and '-e' argument, you can set pattern for base name and
     extension separately.
 
@@ -80,20 +77,20 @@ PATTERNS TYPES
 
 EXAMPLES
 
-    %(prog)s -n [n4].~[e] aaa1.txt bbb2.txt
+    $ %(prog)s -n [n4].~[e] aaa1.txt bbb2.txt
         aaa1.txt -> 1.~txt
         bbb2.txt -> 2.~txt
 
-    %(prog)s -b [c,,3]\ -\ [n] a.mp3 bbb.mp3
+    $ %(prog)s -b [c,,3]\ -\ [n] a.mp3 bbb.mp3
         a.mp3   -> 001 - a.mp3
         bbb.mp3 -> 002 - bbb.mp3
 
-    %(prog)s -b [c10,5,4] -e txt a.dat b.dat c.dat
+    $ %(prog)s -b [c10,5,4] -e txt a.dat b.dat c.dat
         a.dat -> 0010.txt
         b.dat -> 0015.txt
         c.dat -> 0020.txt
 
-    %(prog)s --regex -n s/_/\ /g qwe_-_hello.mp3
+    $ %(prog)s --regex -n s/_/\ /g qwe_-_hello.mp3
         qwe_-_hello.mp3 -> qwe - hello.mp3
 
 """ % {'prog': prog}
