@@ -3,12 +3,12 @@ mv-smart
 Smart file renaming
 
 ### SYNOPSIS
-    mv-smart.py -n pattern [--f] FILE [FILE ...]
-    mv-smart.py -b pattern [-e pattern] [--f] FILE [FILE ...]
-    mv-smart.py --simple -n pattern [--f] FILE [FILE ...]
-    mv-smart.py --simple -b pattern [-e pattern] [--f] FILE [FILE ...]
-    mv-smart.py --regex-subs -n pattern [--f] FILE [FILE ...]
-    mv-smart.py --regex-subs -b pattern [-e pattern] [--f] FILE [FILE ...]
+    mv-smart.py -n pattern [-f] FILE [FILE ...]
+    mv-smart.py -b pattern [-e pattern] [-f] FILE [FILE ...]
+    mv-smart.py --simple -n pattern [-f] FILE [FILE ...]
+    mv-smart.py --simple -b pattern [-e pattern] [-f] FILE [FILE ...]
+    mv-smart.py --regex-subs -n pattern [-f] FILE [FILE ...]
+    mv-smart.py --regex-subs -b pattern [-e pattern] [-f] FILE [FILE ...]
 
 ### DESCRIPTION
 
@@ -48,11 +48,11 @@ You can escape any character (like '[', '\\') with preceding '\\' character.
 
 **Regular expression**
 
-If you specify either `--regex-subs` or `--regex` arguments, you can use regular expression as 'pattern' arguments in for s/__pattern__/__replace__/' or 's/__pattern__/__replace__/g'. You can replace '/' with any other charater, i.e 's!__pattern__!__replace__!g'
+If you specify either `--regex-subs` or `--regex` arguments, you can use regular expression as 'pattern' arguments in for `s/<pattern>/<replace>/` or `s/<pattern>/<replace>/g`. You can replace '/' with any other charater, i.e `s!<pattern>!<replace>!g`
 'g' means continue searchin/replacing after first replace.
 Regular expression matching operations similar to those found in Perl
 
-You can use special sequences in __replace__:
+You can use special sequences in `replace`:
 
     '\b'    - to insert file name without extension
     '\e'    - to insert file extension
