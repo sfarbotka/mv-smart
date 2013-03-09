@@ -20,12 +20,12 @@ NAME
     %(prog)s -- smart file renaming
 
 SYNOPSIS
-    %(prog)s -n pattern [-f] FILE [FILE ...]
-    %(prog)s -b pattern [-e pattern] [-f] FILE [FILE ...]
-    %(prog)s --simple -n pattern [-f] FILE [FILE ...]
-    %(prog)s --simple -b pattern [-e pattern] [-f] FILE [FILE ...]
-    %(prog)s --regex-subs -n pattern [-f] FILE [FILE ...]
-    %(prog)s --regex-subs -b pattern [-e pattern] [-f] FILE [FILE ...]
+    %(prog)s -n PATTERN [-f] FILE [FILE ...]
+    %(prog)s -b PATTERN [-e PATTERN] [-f] FILE [FILE ...]
+    %(prog)s --simple -n PATTERN [-f] FILE [FILE ...]
+    %(prog)s --simple -b PATTERN [-e PATTERN] [-f] FILE [FILE ...]
+    %(prog)s --regex-subs -n PATTERN [-f] FILE [FILE ...]
+    %(prog)s --regex-subs -b PATTERN [-e PATTERN] [-f] FILE [FILE ...]
 
 ARGUMENTS
 """ % {'prog': prog}
@@ -42,6 +42,7 @@ DESCRIPTION
     be renamed).
     If you specify both '-b' and '-e' argument, you can set pattern for base name and
     extension separately.
+    Files won't be ranamed until '-f' argument is specified.
 
 PATTERNS TYPES
     * Simple patterns *
@@ -70,9 +71,9 @@ PATTERNS TYPES
 
     You can use special sequences in '<replace>':
 
-        '\\b'    - to insert file name without extension
-        '\e'    - to insert file extension
-        '\\n'    - to insert file name with extension
+        '\\b' - to insert file name without extension
+        '\e' - to insert file extension
+        '\\n' - to insert file name with extension
 
 
 EXAMPLES
