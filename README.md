@@ -3,12 +3,10 @@ mv-smart
 Smart file renaming
 
 ### SYNOPSIS
-    mv-smart.py -n pattern [-f] FILE [FILE ...]
-    mv-smart.py -b pattern [-e pattern] [-f] FILE [FILE ...]
-    mv-smart.py --simple -n pattern [-f] FILE [FILE ...]
-    mv-smart.py --simple -b pattern [-e pattern] [-f] FILE [FILE ...]
-    mv-smart.py --regex-subs -n pattern [-f] FILE [FILE ...]
-    mv-smart.py --regex-subs -b pattern [-e pattern] [-f] FILE [FILE ...]
+    mv-smart.py [--simple] -n pattern [-f] FILE [FILE ...]
+    mv-smart.py [--simple] -b pattern [-e pattern] [-f] FILE [FILE ...]
+    mv-smart.py --regex -n pattern [-f] FILE [FILE ...]
+    mv-smart.py --regex -b pattern [-e pattern] [-f] FILE [FILE ...]
 
 ### DESCRIPTION
 
@@ -48,9 +46,17 @@ You can escape any character (like '[', '\\') with preceding '\\' character.
 
 **Regular expression**
 
-If you specify either `--regex-subs` or `--regex` arguments, you can use regular expression as 'pattern' arguments in for `s/<pattern>/<replace>/` or `s/<pattern>/<replace>/g`. You can replace '/' with any other charater, i.e `s!<pattern>!<replace>!g`
-'g' means continue searchin/replacing after first replace.
-Regular expression matching operations similar to those found in Perl
+If you specify '--regex' argument, you can use regular 
+expression as 'pattern' arguments in formats:
+
+    's/<pattern>/<replace>/', 's/<pattern>/<replace>/g'
+    'n/<pattern>/<replace>/', 'n/<pattern>/<replace>/g'
+    'b/<pattern>/<replace>/', 'b/<pattern>/<replace>/g'
+    'e/<pattern>/<replace>/', 'e/<pattern>/<replace>/g'
+
+'s' means use whole file name with extension for search/replace. 'n' is the same as 's'.
+'b' uses file name without extension, 'e' uses only file extension
+You can replace '/' with any other charater, i.e `s!<pattern>!<replace>!g`
 
 You can use special sequences in `replace`:
 
@@ -80,4 +86,8 @@ You can use special sequences in `replace`:
 `$ mv-smart.py --regex -n s/_/\ /g qwe_-_hello.mp3`
 
     qwe_-_hello.mp3 -> qwe - hello.mp3
+
+`$ mv-smart.py --regex -b n/^/./ -e e//bak/ song.mp3`
+
+    song.mp3 -> .song.mp3.bak
 

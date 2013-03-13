@@ -9,8 +9,7 @@ import argparse
 
 
 PATTERN_TYPE_SIMPLE = 'Simple'
-PATTERN_TYPE_REGEX_SUBSTITUTE = 'Regex (s///g)'
-PATTERN_TYPE_REGEX_SIMPLE = 'Regex (simple)'  # Currently disabled
+PATTERN_TYPE_REGEX = 'Regex (s///g)'
 
 
 prog = os.path.split(sys.argv[0])[1]
@@ -20,12 +19,10 @@ NAME
     %(prog)s -- smart file renaming
 
 SYNOPSIS
-    %(prog)s -n PATTERN [-f] FILE [FILE ...]
-    %(prog)s -b PATTERN [-e PATTERN] [-f] FILE [FILE ...]
-    %(prog)s --simple -n PATTERN [-f] FILE [FILE ...]
-    %(prog)s --simple -b PATTERN [-e PATTERN] [-f] FILE [FILE ...]
-    %(prog)s --regex-subs -n PATTERN [-f] FILE [FILE ...]
-    %(prog)s --regex-subs -b PATTERN [-e PATTERN] [-f] FILE [FILE ...]
+    %(prog)s [--simple] -n PATTERN [-f] FILE [FILE ...]
+    %(prog)s [--simple] -b PATTERN [-e PATTERN] [-f] FILE [FILE ...]
+    %(prog)s --regex -n PATTERN [-f] FILE [FILE ...]
+    %(prog)s --regex -b PATTERN [-e PATTERN] [-f] FILE [FILE ...]
 
 ARGUMENTS
 """ % {'prog': prog}
@@ -62,9 +59,17 @@ PATTERNS TYPES
     You can escape any character (like '[', '\\') with preceding '\\' character.
 
     * Regular expression *
-    If you specify either '--regex-subs' or '--regex' arguments, you can use regular
-    expression as 'pattern' arguments in for 's/<pattern>/<replace>/' or
-    's/<pattern>/<replace>/g'. You can replace '/' with any other charater,
+    If you specify '--regex' argument, you can use regular
+    expression as 'pattern' arguments in formats:
+
+        's/<pattern>/<replace>/', 's/<pattern>/<replace>/g'
+        'n/<pattern>/<replace>/', 'n/<pattern>/<replace>/g'
+        'b/<pattern>/<replace>/', 'b/<pattern>/<replace>/g'
+        'e/<pattern>/<replace>/', 'e/<pattern>/<replace>/g'
+
+    's' means use whole file name with extension for search/replace. 'n' is the same as 's'.
+    'b' uses file name without extension, 'e' uses only file extension
+    You can replace '/' with any other charater,
     i.e 's!<pattern>!<replace>!g'
     'g' means continue searchin/replacing after first replace.
     Regular expression matching operations similar to those found in Perl
@@ -93,6 +98,9 @@ EXAMPLES
 
     $ %(prog)s --regex -n s/_/\ /g qwe_-_hello.mp3
         qwe_-_hello.mp3 -> qwe - hello.mp3
+
+    $ %(prog)s --regex -b n/^/./ -e e//bak/ song.mp3
+        song.mp3 -> .song.mp3.bak
 
 """ % {'prog': prog}
 
@@ -288,23 +296,16 @@ class SimpleSubstitutor(Substitutor):
 class RegexSubstitutor(Substitutor):
     _cpescape = re.compile(r'(\\[\\abfnrtve])')
     _cppredefined = re.compile(r'((?<!\\)(?:\\\\)*)\\(?P<x>[ben\\])')
-    _cpsubstitute = re.compile(r's(?P<d>.)(?P<p>.+)(?P=d)(?P<r>.*)(?P=d)(?P<g>g)?')
+    _cpsubstitute = re.compile(r'(?P<t>e|b|n|s)(?P<d>.)(?P<p>.*)(?P=d)(?P<r>.*)(?P=d)(?P<g>g)?')
 
-    def __init__(self, pattern, pattern_type=PATTERN_TYPE_REGEX_SUBSTITUTE):
+    def __init__(self, pattern):
         self.pattern = pattern
-        self.pattern_type = pattern_type
         self.pobject = None
         self.rstring = None
         self.go = None
+        self.typ = None
 
-    def _parse_simple_pattern(self):
-        po = re.compile(r'^.+$')
-        r = self.pattern
-        g = False
-
-        return po, r, g
-
-    def _parse_substitute_pattern(self):
+    def _parse_pattern(self):
         m = self._cpsubstitute.match(self.pattern)
         if m is None:
             raise PatternError(self.pattern, 'Substitute regex pattern is not recognized')
@@ -314,9 +315,13 @@ class RegexSubstitutor(Substitutor):
             raise PatternError(self.pattern,
                                'Substitute delimiter "%s" is used inside pattern' % d)
 
+        t = m.group('t')
         p = m.group('p')
         r = m.group('r')
         g = m.group('g')
+
+        if not len(p):
+            p = r'^.*$'
 
         try:
             po = re.compile(p)
@@ -324,25 +329,18 @@ class RegexSubstitutor(Substitutor):
             raise PatternError(p, e.message)
 
         g = True if g is not None else False
-
-        return po, r, g
-
-    def _parse_pattern(self):
-        if self.pattern_type == PATTERN_TYPE_REGEX_SIMPLE:
-            po, r, g = self._parse_simple_pattern()
-        else:
-            po, r, g = self._parse_substitute_pattern()
-
         r = self._cpescape.sub(r'\\\1', r)
-        return po, r, g
+
+        return t, po, r, g
 
     def compile(self):
         self.pobject = None
         self.rstring = None
         self.go = None
 
-        po, r, g = self._parse_pattern()
+        t, po, r, g = self._parse_pattern()
 
+        self.typ = t
         self.pobject = po
         self.rstring = r
         self.go = g
@@ -376,13 +374,29 @@ class RegexSubstitutor(Substitutor):
         ret = s % groups
         return ret
 
+    def _get_string(self, fname):
+        if self.typ in ['n', 's']:
+            return fname
+
+        b, e = os.path.splitext(fname)
+
+        if self.typ == 'b':
+            return b
+
+        if len(e):
+            e = e[1:]
+
+        return e
+
     def subs(self, fname):
         count = 0 if self.go else 1
 
         rstring = self.rstring
 
+        s = self._get_string(fname)
+
         try:
-            ret = self.pobject.sub(rstring, fname, count)
+            ret = self.pobject.sub(rstring, s, count)
         except IndexError as e:
             raise PatternError(self.rstring, e.message)
         except re.error as e:
@@ -400,9 +414,8 @@ class SubstitutorBuilder(object):
         if self.pattern_type == PATTERN_TYPE_SIMPLE:
             return SimpleSubstitutor(pattern)
 
-        if self.pattern_type in [PATTERN_TYPE_REGEX_SIMPLE,
-                                 PATTERN_TYPE_REGEX_SUBSTITUTE]:
-            return RegexSubstitutor(pattern, self.pattern_type)
+        if self.pattern_type == PATTERN_TYPE_REGEX:
+            return RegexSubstitutor(pattern)
 
         raise KeyError('Unrecognized pattern type: %s' % self.pattern_type)
 
@@ -411,20 +424,16 @@ class SubstitutorBuilder(object):
         if self.pattern_type == PATTERN_TYPE_SIMPLE:
             return '[e]'
 
-        if self.pattern_type == PATTERN_TYPE_REGEX_SIMPLE:
-            return r'\e'
-        if self.pattern_type == PATTERN_TYPE_REGEX_SUBSTITUTE:
-            return r's/^.+$/\e/'
+        if self.pattern_type == PATTERN_TYPE_REGEX:
+            return r's//\e/'
 
     @property
     def default_base_pattern(self):
         if self.pattern_type == PATTERN_TYPE_SIMPLE:
             return '[n]'
 
-        if self.pattern_type == PATTERN_TYPE_REGEX_SIMPLE:
-            return r'\b'
-        if self.pattern_type == PATTERN_TYPE_REGEX_SUBSTITUTE:
-            return r's/^.+$/\b/'
+        if self.pattern_type == PATTERN_TYPE_REGEX:
+            return r's//\b/'
 
 
 def rename(tuples, force):
@@ -489,10 +498,7 @@ def subs(ne, n, e, files, pattern_type=PATTERN_TYPE_SIMPLE):
 
 def get_pattern_type(args):
     if args.regex or args.regex_subs:
-        return PATTERN_TYPE_REGEX_SUBSTITUTE
-
-    #if args.regex_simple:
-    #    return PATTERN_TYPE_REGEX_SIMPLE
+        return PATTERN_TYPE_REGEX
 
     return PATTERN_TYPE_SIMPLE
 
@@ -511,12 +517,8 @@ def parse_args():
     gptype0 = parser.add_argument_group('Pattern types')
     gptype = gptype0.add_mutually_exclusive_group()
     gptype.title = 'Patterns types'
-    #gptype.add_argument('--regex-simple',
-    #                    help='Parse pattern as simple regex', action='store_true')
-    gptype.add_argument('--regex-subs',
-                        help='Parse pattern as s///g regex', action='store_true')
     gptype.add_argument('--regex',
-                        help='Same as --regex-subs', action='store_true')
+                        help='Parse pattern as s///g regex', action='store_true')
     gptype.add_argument('--simple',
                         help='Simple pattern (default)', action='store_true')
     gother = parser.add_argument_group('Other arguments')
