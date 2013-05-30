@@ -497,7 +497,7 @@ def subs(ne, n, e, files, pattern_type=PATTERN_TYPE_SIMPLE):
 
 
 def get_pattern_type(args):
-    if args.regex or args.regex_subs:
+    if args.regex:
         return PATTERN_TYPE_REGEX
 
     return PATTERN_TYPE_SIMPLE
